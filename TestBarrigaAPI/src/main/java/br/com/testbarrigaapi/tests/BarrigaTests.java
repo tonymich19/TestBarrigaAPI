@@ -1,6 +1,7 @@
 package br.com.testbarrigaapi.tests;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -8,6 +9,7 @@ import io.restassured.internal.ResponseSpecificationImpl.HamcrestAssertionClosur
 
 import java.util.HashMap;
 import java.util.Map;
+
 
 
 
@@ -96,16 +98,7 @@ public class BarrigaTests extends BaseTest{
 	
 	@Test
 	public void deveInserirMovimentacaoComSucesso() {
-		Movimentacao mov = new Movimentacao();
-		mov.setConta_id(38994);
-		//mov.setUsuario_id(usuario_id);
-		mov.setDescricao("Descrição da movimentação");
-		mov.setEnvolvido("Envolvido na movimentação");
-		mov.setTipo("REC");
-		mov.setData_transacao("01/01/2010");
-		mov.setData_pagamento("01/01/2015");		
-		mov.setValor(100f);
-		mov.setStatus(true);
+		Movimentacao mov = getMovimentacaoValida();
 		
 		given()
 			.header("Authorization", "JWT " + TOKEN)
@@ -139,5 +132,35 @@ public class BarrigaTests extends BaseTest{
 					"Situação é obrigatório"
 					))
 		;
+	}
+	
+	@Test
+	public void naoDeveInserirMovimentacaoDataFutura() {
+		Movimentacao mov = getMovimentacaoValida();
+		mov.setData_transacao("02/02/2079");
+		given()
+			.header("Authorization", "JWT " + TOKEN)
+			.body(mov)
+		.when()
+			.post("/transacoes")
+		.then()
+			.statusCode(400)
+			.body("$", hasSize(1))
+			.body("msg", hasItem("Data da Movimentação deve ser menor ou igual à data atual"))
+		;
+	}
+	
+	private Movimentacao getMovimentacaoValida(){
+		Movimentacao mov = new Movimentacao();
+		mov.setConta_id(38994);
+		//mov.setUsuario_id(usuario_id);
+		mov.setDescricao("Descrição da movimentação");
+		mov.setEnvolvido("Envolvido na movimentação");
+		mov.setTipo("REC");
+		mov.setData_transacao("01/01/2010");
+		mov.setData_pagamento("01/01/2015");		
+		mov.setValor(100f);
+		mov.setStatus(true);
+		return mov;
 	}
 }
