@@ -1,10 +1,16 @@
 package br.com.testbarrigaapi.tests;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import io.restassured.internal.ResponseSpecificationImpl.HamcrestAssertionClosure;
 
 import java.util.HashMap;
 import java.util.Map;
+
+
+
 
 import org.hamcrest.Matchers;
 import org.junit.Before;
@@ -108,6 +114,30 @@ public class BarrigaTests extends BaseTest{
 			.post("/transacoes")
 		.then()
 			.statusCode(201)
+		;
+	}
+	
+	@Test
+	public void validarCamposObrigatorios() {
+		
+		given()
+			.header("Authorization", "JWT " + TOKEN)
+			.body("{}")
+		.when()
+			.post("/transacoes")
+		.then()
+			.statusCode(400)
+			.body("$", hasSize(8))
+			.body("msg", hasItems(
+					"Data da Movimentação é obrigatório",
+					"Data do pagamento é obrigatório",
+					"Descrição é obrigatório",
+					"Interessado é obrigatório",
+					"Valor é obrigatório",
+					"Valor deve ser um número",
+					"Conta é obrigatório",
+					"Situação é obrigatório"
+					))
 		;
 	}
 }
