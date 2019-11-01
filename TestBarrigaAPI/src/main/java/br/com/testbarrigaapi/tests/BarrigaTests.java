@@ -1,10 +1,12 @@
 package br.com.testbarrigaapi.tests;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.is;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -61,6 +63,28 @@ public class BarrigaTests extends BaseTest{
 			.put("/contas/38994")
 		.then()
 			.statusCode(200)
+		;
+	}
+	
+	@Test
+	public void NaoDeveAdicionarContaRepetida() {
+		String nome = given()
+			.header("Authorization", "JWT " + TOKEN)
+			.body("{\"nome\": \"nova alteração\"}")
+		.when()
+			.get("/contas")
+		.then()
+			.extract().path("nome[0]").toString()		
+		;
+		
+		given()
+			.header("Authorization", "JWT " + TOKEN)
+			.body("{\"nome\": \"" + nome + "\"}")
+		.when()
+			.post("/contas")
+		.then()
+			.statusCode(400)
+			.body("error", is("Já existe uma conta com esse nome!"))
 		;
 	}
 }
