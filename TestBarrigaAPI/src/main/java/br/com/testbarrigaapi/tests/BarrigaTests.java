@@ -150,6 +150,31 @@ public class BarrigaTests extends BaseTest{
 		;
 	}
 	
+	@Test
+	public void naoDeveContaComMovimentacao() {
+		given()
+			.header("Authorization", "JWT " + TOKEN)
+		.when()
+			.delete("/contas/38994")
+		.then()
+			.statusCode(500)
+			.body("constraint", is("transacoes_conta_id_foreign"))
+		;
+	}
+	
+	@Test
+	public void deveCalcularSaldo() {
+		given()
+			.header("Authorization", "JWT " + TOKEN)
+		.when()
+			.get("/saldo")
+		.then()
+			.statusCode(200)
+			.body("find{it.conta_id == 38994}.saldo", is("100.00"))
+			.log().all()
+		;
+	}
+	
 	private Movimentacao getMovimentacaoValida(){
 		Movimentacao mov = new Movimentacao();
 		mov.setConta_id(38994);
